@@ -1,6 +1,169 @@
-<p>truckmake 创客每刻</p>
-<p>很高兴你来到这里, 未来这里会发布很多信息</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tutorial</title>
+    <link rel="stylesheet" href="C:\Users\tree\AppData\Local\Icons8\Lunacy\Prototyping\16e7425f-2738-4fa5-a895-3c887e45b459\style.css"/>
+</head>
+<body>
+<header id="header" class="header">
+    <nav class="nav container">
+        <div>
+            <div class="nav__menu">
+                <ul class="nav__list">
+                    <li>
+                        <a href="https://icons8.ru/lunacy" class="nav__logo">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                 xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0 9.6C0 6.23968 0 4.55953 0.653961 3.27606C1.2292 2.14708 2.14708 1.2292 3.27606 0.653961C4.55953 0 6.23968 0 9.6 0L14.4 0C17.7603 0 19.4405 0 20.7239 0.653961C21.8529 1.2292 22.7708 2.14708 23.346 3.27606C24 4.55953 24 6.23968 24 9.6V14.4C24 17.7603 24 19.4405 23.346 20.7239C22.7708 21.8529 21.8529 22.7708 20.7239 23.346C19.4405 24 17.7603 24 14.4 24H9.6C6.23968 24 4.55953 24 3.27606 23.346C2.14708 22.7708 1.2292 21.8529 0.653961 20.7239C0 19.4405 0 17.7603 0 14.4L0 9.6Z"
+                                      fill="#179DE3"/>
+                                <path d="M5.71875 6.41521C5.71875 6.03056 6.03056 5.71875 6.4152 5.71875H11.3153C11.6999 5.71875 12.0117 6.03056 12.0117 6.4152V18.3043H6.41521C6.03056 18.3043 5.71875 17.9925 5.71875 17.6078V6.41521Z"
+                                      fill="white"/>
+                                <path d="M12.0117 18.3045L17.1158 13.2006C17.5545 12.7619 18.3047 13.0726 18.3047 13.6931V17.608C18.3047 17.9927 17.9929 18.3045 17.6082 18.3045H12.0117Z"
+                                      fill="white"/>
+                                <path d="M16.1235 6.20289C16.415 6.98818 17.0342 7.60743 17.8195 7.89886C17.9862 7.96072 17.986 8.19657 17.8194 8.2585C17.0345 8.55013 16.415 9.1694 16.1236 9.95432C16.0617 10.121 15.8259 10.121 15.7639 9.9543C15.4721 9.16949 14.8529 8.55023 14.0681 8.25848C13.9014 8.19652 13.9013 7.96072 14.068 7.89883C14.853 7.6074 15.4722 6.98791 15.7639 6.20305C15.8258 6.03639 16.0617 6.0362 16.1235 6.20289Z"
+                                      fill="white"/>
+                            </svg>
+                        </a>
+                    </li>
+                    <li>
+    
+</li>
 
-<ul>
-  <li> <a href="https://space.bilibili.com/7387216">前往B站</a> </li>
-</ul>
+                </ul>
+            </div>
+        </div>
+
+        <div class="nav__menu">
+            <ul id="title_list" class="nav__list">
+                <li id="title"></li>
+            </ul>
+        </div>
+
+        <div class="nav__menu">
+            <ul class="nav__list">
+                <li>
+    <button id="share_button" class="button" onclick="SendCommand(Commands.Share)">分享</button>
+</li>
+            </ul>
+        </div>
+    </nav>
+</header>
+<main class="main">
+    <div id="artboards" class="main">
+        
+    </div>
+    <ul id="alert" class="alert__list">
+
+    </ul>
+</main>
+
+<script type="text/javascript" src="C:\Users\tree\AppData\Local\Icons8\Lunacy\Prototyping\16e7425f-2738-4fa5-a895-3c887e45b459\script.js"></script> 
+<script type="text/javascript">
+    const artboards = ["138f3e64-3829-46c2-9103-60a6ef35cee8"]
+const connectionId = "a9e16a13-65b1-4c2e-b66d-a47ba8cf7294";
+let connected = true
+
+const Commands = {
+    Message: 0,
+    Share: 1,
+    Close: 2,
+    Artboard: 3,
+    Disconnected: 4,
+    IsAlive: 5,
+    Update: 6,
+};
+Object.freeze(Commands);
+
+async function ConnectionLoop() {
+    if (!connected) {
+        return
+    }
+
+    let delay = 0;
+
+    try {
+        await TryGetCommands()
+    } catch {
+        delay = 2000;
+    }
+
+    setTimeout(async function () {
+        await ConnectionLoop();
+    }, delay)
+}
+
+async function TryGetCommands() {
+    const data = {
+        connectionId,
+    }
+    const response = await fetch("http://localhost:27097", {
+        method: "POST",
+        body: JSON.stringify(data)
+    });
+    const commands = await response.json()
+    commands.forEach(command => ResolveCommand(command));
+}
+
+async function ResolveCommand(command) {
+    switch (command.commandType) {
+        case Commands.Message:
+            ShowAlert(command.data)
+            break;
+        case Commands.Close:
+            window.close()
+            break;
+        case Commands.Disconnected:
+            Disconnect()
+            break;
+        case Commands.IsAlive:
+            await SendCommand(Commands.IsAlive)
+            break;
+        case Commands.Artboard:
+            AddArtboard(command.data)
+            if (command.data.id === artboards[0]) {
+                SelectSlide(command.data.id, "fromright", false, false)
+            }
+            break;
+        case Commands.Update:
+            UpdateArtboard(command.data)
+            break;
+    }
+}
+
+async function LoadArtboards() {
+    for (const artboard of artboards) {
+        await SendCommand(Commands.Artboard, artboard)
+    }
+}
+
+function Disconnect() {
+    document.getElementById("share_button").hidden = true
+
+    const el = document.createElement("li")
+    el.innerText = "Disconnected"
+    document.getElementById("title_list").appendChild(el)
+
+    connected = false
+}
+
+function SendCommand(commandType, data) {
+    const body = {
+        commandType,
+        connectionId,
+        data,
+    }
+
+    return fetch("http://localhost:27097", {
+        method: "POST",
+        body: JSON.stringify(body)
+    });
+}
+
+window.onload = () => {
+    ConnectionLoop()
+    LoadArtboards()
+}
+</script>
+</body>
+</html>
