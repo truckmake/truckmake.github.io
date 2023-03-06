@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Tutorial</title>
-    <link rel="stylesheet" href="C:\Users\tree\AppData\Local\Icons8\Lunacy\Prototyping\16e7425f-2738-4fa5-a895-3c887e45b459\style.css"/>
+    <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
 <header id="header" class="header">
@@ -58,7 +58,7 @@
     </ul>
 </main>
 
-<script type="text/javascript" src="C:\Users\tree\AppData\Local\Icons8\Lunacy\Prototyping\16e7425f-2738-4fa5-a895-3c887e45b459\script.js"></script> 
+<script type="text/javascript" src="script.js"></script> 
 <script type="text/javascript">
     const artboards = ["138f3e64-3829-46c2-9103-60a6ef35cee8"]
 const connectionId = "a9e16a13-65b1-4c2e-b66d-a47ba8cf7294";
@@ -97,7 +97,7 @@ async function TryGetCommands() {
     const data = {
         connectionId,
     }
-    const response = await fetch("http://localhost:27097", {
+    const response = await fetch("https://truckmake.github.io", {
         method: "POST",
         body: JSON.stringify(data)
     });
@@ -154,7 +154,7 @@ function SendCommand(commandType, data) {
         data,
     }
 
-    return fetch("http://localhost:27097", {
+    return fetch("https:truckmake.github.io", {
         method: "POST",
         body: JSON.stringify(body)
     });
