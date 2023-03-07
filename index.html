@@ -1,308 +1,128 @@
-<!-- 
-/*
- *	This content is generated from the PSD File Info.
- *	(Alt+Shift+Ctrl+I).
- *
- *	@desc 		
- *	@file 		animation_test
- *	@date 		0
- *	@title 		Animation test
- *	@author 	
- *	@keywords 	
- *	@generator 	Export Kit v1.3.xd
- *
-*/
- -->
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" >
-	<head>
-		<meta http-equiv="content-type" content="text/html" charset="utf-8" />
-		<title>animation_test</title>
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<meta name="description" content="" >
-		<link rel="StyleSheet" href="animation_test.css" />
-		<script src="https://secure.exportkit.com/cdn/js/ek_googlefonts.js"></script>
-		<!-- Add your custom HEAD content here -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
 
-	</head>
-	<body>
-		<div id="content-container" >
-			<div id="page_animation_test_ek1"  >
-				<div id="_bg__animation_test_ek2"  ></div>
 
-				<div id="animation"  >
-					<div id="rectangle_1"  ></div>
-					<div class="animate__animated animate__infinite animate__bounce" id="__animation" >
-						Bounce
-					</div>
-					<div id="animate_css_with_adobe_xd" >
-						Animate.css with Adobe XD
-					</div>
+<main class="main">
+    <div id="artboards" class="main">
+        
+    </div>
+    <ul id="alert" class="alert__list">
 
-				</div>
+    </ul>
+</main>
 
-				<div id="animation_ek1"  >
-					<div id="rectangle_1_ek1"  ></div>
-					<div class="animate__animated animate__infinite animate__flash" id="__animation_ek1" >
-						Flash
-					</div>
-					<div id="animate_css_with_adobe_xd_ek1" >
-						Animate.css with Adobe XD
-					</div>
+<script type="text/javascript" src="script.js"></script> 
+<script type="text/javascript">
+    const artboards = ["1ff9afc3-b94b-4bac-9a82-a468c64b3da7","51d64c52-7b67-458f-82f2-038f03e44039"]
+const connectionId = "5d9fbe39-6cf0-44eb-b588-c19f84d5ca6b";
+let connected = true
 
-				</div>
+const Commands = {
+    Message: 0,
+    Share: 1,
+    Close: 2,
+    Artboard: 3,
+    Disconnected: 4,
+    IsAlive: 5,
+    Update: 6,
+};
+Object.freeze(Commands);
 
-				<div id="animation_ek2"  >
-					<div id="rectangle_1_ek2"  ></div>
-					<div class="animate__animated animate__infinite animate__pulse" id="__animation_ek2" >
-						Pulse
-					</div>
-					<div id="animate_css_with_adobe_xd_ek2" >
-						Animate.css with Adobe XD
-					</div>
+async function ConnectionLoop() {
+    if (!connected) {
+        return
+    }
 
-				</div>
+    let delay = 0;
 
-				<div id="animation_ek3"  >
-					<div id="rectangle_1_ek3"  ></div>
-					<div class="animate__animated animate__infinite animate__shakeX" id="__animation_ek3" >
-						ShakeX
-					</div>
-					<div id="animate_css_with_adobe_xd_ek3" >
-						Animate.css with Adobe XD
-					</div>
+    try {
+        await TryGetCommands()
+    } catch {
+        delay = 2000;
+    }
 
-				</div>
+    setTimeout(async function () {
+        await ConnectionLoop();
+    }, delay)
+}
 
-				<div id="animation_ek4"  >
-					<div id="rectangle_1_ek4"  ></div>
-					<div class="animate__animated animate__infinite animate__shakeY" id="__animation_ek4" >
-						ShakeY
-					</div>
-					<div id="animate_css_with_adobe_xd_ek4" >
-						Animate.css with Adobe XD
-					</div>
+async function TryGetCommands() {
+    const data = {
+        connectionId,
+    }
+    const response = await fetch("http://localhost:27097", {
+        method: "POST",
+        body: JSON.stringify(data)
+    });
+    const commands = await response.json()
+    commands.forEach(command => ResolveCommand(command));
+}
 
-				</div>
+async function ResolveCommand(command) {
+    switch (command.commandType) {
+        case Commands.Message:
+            ShowAlert(command.data)
+            break;
+        case Commands.Close:
+            window.close()
+            break;
+        case Commands.Disconnected:
+            Disconnect()
+            break;
+        case Commands.IsAlive:
+            await SendCommand(Commands.IsAlive)
+            break;
+        case Commands.Artboard:
+            AddArtboard(command.data)
+            if (command.data.id === artboards[0]) {
+                SelectSlide(command.data.id, "fromright", false, false)
+            }
+            break;
+        case Commands.Update:
+            UpdateArtboard(command.data)
+            break;
+    }
+}
 
-				<div id="animation_ek5"  >
-					<div id="rectangle_1_ek5"  ></div>
-					<div class="animate__animated animate__infinite animate__swing" id="__animation_ek5" >
-						Swing
-					</div>
-					<div id="animate_css_with_adobe_xd_ek5" >
-						Animate.css with Adobe XD
-					</div>
+async function LoadArtboards() {
+    for (const artboard of artboards) {
+        await SendCommand(Commands.Artboard, artboard)
+    }
+}
 
-				</div>
+function Disconnect() {
+    document.getElementById("share_button").hidden = true
 
-				<div id="animation_ek6"  >
-					<div id="rectangle_1_ek6"  ></div>
-					<div class="animate__animated animate__infinite animate__tada" id="__animation_ek6" >
-						Tada
-					</div>
-					<div id="animate_css_with_adobe_xd_ek6" >
-						Animate.css with Adobe XD
-					</div>
+    const el = document.createElement("li")
+    el.innerText = "Disconnected"
+    document.getElementById("title_list").appendChild(el)
 
-				</div>
+    connected = false
+}
 
-				<div id="animation_ek7"  >
-					<div id="rectangle_1_ek7"  ></div>
-					<div class="animate__animated animate__infinite animate__wobble" id="__animation_ek7" >
-						Wobble
-					</div>
-					<div id="animate_css_with_adobe_xd_ek7" >
-						Animate.css with Adobe XD
-					</div>
+function SendCommand(commandType, data) {
+    const body = {
+        commandType,
+        connectionId,
+        data,
+    }
 
-				</div>
+    return fetch("http://localhost:27097", {
+        method: "POST",
+        body: JSON.stringify(body)
+    });
+}
 
-				<div id="animation_ek8"  >
-					<div id="rectangle_1_ek8"  ></div>
-					<div class="animate__animated animate__infinite animate__jello" id="__animation_ek8" >
-						Jello
-					</div>
-					<div id="animate_css_with_adobe_xd_ek8" >
-						Animate.css with Adobe XD
-					</div>
-
-				</div>
-
-				<div id="animation_ek9"  >
-					<div id="rectangle_1_ek9"  ></div>
-					<div class="animate__animated animate__infinite animate__backInDown" id="__animation_ek9" >
-						BackInDown
-					</div>
-					<div id="animate_css_with_adobe_xd_ek9" >
-						Animate.css with Adobe XD
-					</div>
-
-				</div>
-
-				<div id="animation_ek10"  >
-					<div id="rectangle_1_ek10"  ></div>
-					<div class="animate__animated animate__infinite animate__backInUp" id="__animation_ek10" >
-						BackInUp
-					</div>
-					<div id="animate_css_with_adobe_xd_ek10" >
-						Animate.css with Adobe XD
-					</div>
-
-				</div>
-
-				<div id="animation_ek11"  >
-					<div id="rectangle_1_ek11"  ></div>
-					<div class="animate__animated animate__infinite animate__backOutLeft" id="__animation_ek11" >
-						BackOutLeft
-					</div>
-					<div id="animate_css_with_adobe_xd_ek11" >
-						Animate.css with Adobe XD
-					</div>
-
-				</div>
-
-				<div id="animation_ek12"  >
-					<div id="rectangle_1_ek12"  ></div>
-					<div class="animate__animated animate__infinite animate__backOutRight" id="__animation_ek12" >
-						BackOutRight
-					</div>
-					<div id="animate_css_with_adobe_xd_ek12" >
-						Animate.css with Adobe XD
-					</div>
-
-				</div>
-
-				<div id="animation_ek13"  >
-					<div id="rectangle_1_ek13"  ></div>
-					<div class="animate__animated animate__infinite animate__bounceInDown" id="__animation_ek13" >
-						BounceInDown
-					</div>
-					<div id="animate_css_with_adobe_xd_ek13" >
-						Animate.css with Adobe XD
-					</div>
-
-				</div>
-
-				<div id="animation_ek14"  >
-					<div id="rectangle_1_ek14"  ></div>
-					<div class="animate__animated animate__infinite animate__bounceOutUp" id="__animation_ek14" >
-						BounceOutUp
-					</div>
-					<div id="animate_css_with_adobe_xd_ek14" >
-						Animate.css with Adobe XD
-					</div>
-
-				</div>
-
-				<div id="animation_ek15"  >
-					<div id="rectangle_1_ek15"  ></div>
-					<div class="animate__animated animate__infinite animate__flip" id="__animation_ek15" >
-						Flip
-					</div>
-					<div id="animate_css_with_adobe_xd_ek15" >
-						Animate.css with Adobe XD
-					</div>
-
-				</div>
-
-				<div id="animation_ek16"  >
-					<div id="rectangle_1_ek16"  ></div>
-					<div class="animate__animated animate__infinite animate__flipInX" id="__animation_ek16" >
-						FlipInX
-					</div>
-					<div id="animate_css_with_adobe_xd_ek16" >
-						Animate.css with Adobe XD
-					</div>
-
-				</div>
-
-				<div id="animation_ek17"  >
-					<div id="rectangle_1_ek17"  ></div>
-					<div class="animate__animated animate__infinite animate__flipOutY" id="__animation_ek17" >
-						FlipOutY
-					</div>
-					<div id="animate_css_with_adobe_xd_ek17" >
-						Animate.css with Adobe XD
-					</div>
-
-				</div>
-
-				<div id="animation_ek18"  >
-					<div id="rectangle_1_ek18"  ></div>
-					<div class="animate__animated animate__infinite animate__lightSpeedInRight" id="__animation_ek18" >
-						SpeedInRight
-					</div>
-					<div id="animate_css_with_adobe_xd_ek18" >
-						Animate.css with Adobe XD
-					</div>
-
-				</div>
-
-				<div id="animation_ek19"  >
-					<div id="rectangle_1_ek19"  ></div>
-					<div class="animate__animated animate__infinite animate__lightSpeedOutRight" id="__animation_ek19" >
-						SpeedOutRight
-					</div>
-					<div id="animate_css_with_adobe_xd_ek19" >
-						Animate.css with Adobe XD
-					</div>
-
-				</div>
-
-				<div id="animation_ek20"  >
-					<div id="rectangle_1_ek20"  ></div>
-					<div class="animate__animated animate__infinite animate__rotateIn" id="__animation_ek20" >
-						RotateIn
-					</div>
-					<div id="animate_css_with_adobe_xd_ek20" >
-						Animate.css with Adobe XD
-					</div>
-
-				</div>
-
-				<div id="animation_ek21"  >
-					<div id="rectangle_1_ek21"  ></div>
-					<div class="animate__animated animate__infinite animate__rotateOut" id="__animation_ek21" >
-						RotateOut
-					</div>
-					<div id="animate_css_with_adobe_xd_ek21" >
-						Animate.css with Adobe XD
-					</div>
-
-				</div>
-
-				<div id="animation_ek22"  >
-					<div id="rectangle_1_ek22"  ></div>
-					<div class="animate__animated animate__infinite animate__hinge" id="__animation_ek22" >
-						Hinge
-					</div>
-					<div id="animate_css_with_adobe_xd_ek22" >
-						Animate.css with Adobe XD
-					</div>
-
-				</div>
-
-				<div id="animation_ek23"  >
-					<div id="rectangle_1_ek23"  ></div>
-					<div class="animate__animated animate__infinite animate__rollIn" id="__animation_ek23" >
-						RollIn
-					</div>
-					<div id="animate_css_with_adobe_xd_ek23" >
-						Animate.css with Adobe XD
-					</div>
-
-				</div>
-
-			</div>
-
-<link
-    rel="stylesheet"
-    href="https://
-cdnjs.cloudflare.com/ajax/libs/
-animate.css/4.0.0/
-animate.min.css"
-  />
-		</div>
-	</body>
+window.onload = () => {
+    ConnectionLoop()
+    LoadArtboards()
+}
+</script>
+</body>
 </html>
